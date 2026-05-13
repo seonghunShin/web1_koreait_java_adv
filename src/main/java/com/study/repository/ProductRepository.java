@@ -51,7 +51,67 @@ public class ProductRepository {
 
         return products;
 
+    }
 
+    // 단건 추가
+    public int save(Product product) throws SQLException {
+        String sql = "INSERT INTO product (name, price, stock, category) values (?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = DBConnection.getConnection(); // 커넥션 빌려오기
+            ps = conn.prepareStatement(sql); // 미완성된 sql
+
+            String name = product.getName();
+            int price = product.getPrice();
+            int stock = product.getStock();
+            String category = product.getCategory();
+
+            // SQL injection - ? 자리에 이상한 명령어 끼워넣어서 무차별 공격
+            // 문자열 + 연산 혹은 다른 방법으로 이어서 sql 조합하지 x
+            ps.setString(1, name);
+            ps.setInt(2, price);
+            ps.setInt(3, stock);
+            ps.setString(4, category);
+            // sql 완성
+
+            int successCount = ps.executeUpdate(); // 쿼리 전송&실행
+            return successCount;
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            // 반납
+            // 역순으로
+            if(ps != null) try {ps.close();} catch (SQLException e) {}
+            if(conn != null) try {conn.close();} catch (SQLException e) {}
+        }
+        return  0; // 실패시 0 리턴
+    }
+
+    // 삭제
+    public int delete(int id) throws SQLException {
+        String sql = "DELETE FROM product WHERE id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = DBConnection.getConnection();
+            ps = conn.prepareStatement(sql);
+
+            ps.setInt(1, id);
+            int sc = ps.executeUpdate();
+            return sc;
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            if(ps != null) try {ps.close();} catch (SQLException e) {}
+            if(conn != null) try {conn.close();} catch (SQLException e) {}
+        }
+
+        return -1;
     }
 
 }
